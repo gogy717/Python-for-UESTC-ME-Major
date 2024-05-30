@@ -15,14 +15,10 @@ cv2.createTrackbar("UH", "Trackbars", 180, 180, nothing)
 cv2.createTrackbar("US", "Trackbars", 255, 255, nothing)
 cv2.createTrackbar("UV", "Trackbars", 255, 255, nothing)
 
-# 打开摄像头
-cap = cv2.VideoCapture(0)
 
 while True:
     # 读取摄像头的一帧
-    ret, frame = cap.read()
-    if not ret:
-        break
+    frame = cv2.imread('智能机器人实验/课前准备/IMG_0014.jpg')
 
     # 转换到HSV色彩空间
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -52,7 +48,7 @@ while True:
         break
 
 # 释放摄像头资源并销毁所有窗口
-cap.release()
 cv2.destroyAllWindows()
+
 print(f'lower_hsv: {lower_hsv}')
 print(f'upper_hsv: {upper_hsv}')
