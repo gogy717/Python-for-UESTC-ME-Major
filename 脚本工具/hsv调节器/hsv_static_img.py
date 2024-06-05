@@ -16,7 +16,7 @@ cv2.createTrackbar("US", "Trackbars", 255, 255, nothing)
 cv2.createTrackbar("UV", "Trackbars", 255, 255, nothing)
 
 # 读取摄像头的一帧
-frame = cv2.imread('智能机器人实验/课前准备/IMG_0014.jpg')
+frame = cv2.imread('/Users/luozhufeng/Desktop/Python-for-UESTC-ME-Major/智能机器人实验/IMG_0014.jpg')
 
 while True:
 

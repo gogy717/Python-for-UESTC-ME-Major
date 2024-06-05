@@ -25,7 +25,7 @@ def wiener_deconvolution(blurred_noisy_image, psf, balance_parameter):
     return deconvolved_image
 
 # Load an example image (grayscale)
-image = plt.imread('path_to_your_image.jpg')
+image = plt.imread('/Users/luozhufeng/Desktop/Python-for-UESTC-ME-Major/智能机器人实验/IMG_0014.jpg')
 image = np.mean(image, axis=2)  # Convert to grayscale if necessary
 
 # Simulate a motion blur

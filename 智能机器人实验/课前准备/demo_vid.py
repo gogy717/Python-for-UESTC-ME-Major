@@ -1,10 +1,18 @@
 import cv2
 import numpy as np
 
-video_path = '../../智能机器人实验/课前准备/VID_0013.mp4'
+video_path = "/Users/luozhufeng/Desktop/Python-for-UESTC-ME-Major/智能机器人实验/课前准备/IMG_0013.mp4"
 lower_red = np.array([153, 32, 87])
 upper_red = np.array([180, 213, 206])
+lower_green = np.array([50, 20, 90])
+upper_green = np.array([85, 60, 140])
 cap = cv2.VideoCapture(video_path)
+
+# apply reverse covolution to the image
+def reverse_convolution(image, kernel):
+    kernel = np.flipud(np.fliplr(kernel))
+    return cv2.filter2D(image, -1, kernel)
+
 
 
 def angle_between_lines(line1, line2):
@@ -31,47 +39,32 @@ while True:
     frame_count += 1
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # red_mask = cv2.inRange(hsv, lower_red, upper_red)
     red_mask = cv2.inRange(hsv, lower_red, upper_red)
+
+    red_mask = reverse_convolution(red_mask, np.ones((3,3), np.uint8))  # 反卷积
     red_mask = cv2.GaussianBlur(red_mask, (5,5), 1)  # 使用更大的模糊核心
     red_mask = cv2.dilate(red_mask, None, iterations=6)  # 膨胀
     red_mask = cv2.erode(red_mask, None, iterations=2)  # 腐蚀
 
 
-    contours, _ = cv2.findContours(red_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # draw all contours on an new empty image
-    contour_img = np.zeros(frame.shape, dtype=np.uint8) # create an empty image
-    cv2.drawContours(contour_img, contours, -1, (0, 255, 0), 3) # draw all contours on the empty image
-    cv2.imshow('contour_img', contour_img)
-
-
-    # square_img = np.zeros(frame.shape, dtype=np.uint8)
-    # # 处理每个轮廓
-    # for contour in contours:
-    #     # 使用多边形近似轮廓
-    #     epsilon = 0.11 * cv2.arcLength(contour, True)
-    #     approx = cv2.approxPolyDP(contour, epsilon, True)
-
-    #     # 检查是否为四边形
-    #     if len(approx) == 4:
-    #         # 舍去面积小于1000的四边形
-    #         if cv2.contourArea(approx) < 20000:
-    #             continue
+    edges = cv2.Canny(red_mask, 100, 200)
+    # draw edges
+    cv2.imshow('edges', edges)
             
     #         cv2.drawContours(square_img, [approx], -1, (0, 255, 0), 3)  # 画出轮廓
     # cv2.imshow('square_img', square_img)
 
 
     # 检测圆
-    red_circles = cv2.HoughCircles(red_mask, 
+    red_circles = cv2.HoughCircles(edges, 
                             cv2.HOUGH_GRADIENT, 
                             dp=1, 
-                            minDist=70,
+                            minDist=100,
                             param1=50+5,
                             param2=30+70,
                             minRadius=25,
-                            maxRadius=500)
+                            maxRadius=100)
     if red_circles is not None:
         red_circles = np.uint16(np.around(red_circles))
         for i in red_circles[0, :]:
