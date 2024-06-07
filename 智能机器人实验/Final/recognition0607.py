@@ -3,24 +3,30 @@ import numpy as np
 import time
 
 cap = cv2.VideoCapture(0)
+def apply_CLAHE(img, clip_limit=2.0, tile_grid_size=(8, 8)):
+    """
+    Apply Contrast Limited Adaptive Histogram Equalization (CLAHE) to an image.
 
-def reverse_convolution(image, kernel):
-    kernel = np.flipud(np.fliplr(kernel))
-    return cv2.filter2D(image, -1, kernel)
+    Parameters:
+        image_path (str): Path to the input image.
+        clip_limit (float): Threshold for contrast limiting. Higher values increase contrast.
+        tile_grid_size (tuple): Size of the grid for the tiles used to compute the histogram.
 
-def process_mask(mask):
-    mask = reverse_convolution(mask, np.ones((3,3), np.uint8))  # 反卷积
-    mask = cv2.medianBlur(mask, 5)  # 中值滤波
-    mask = cv2.GaussianBlur(mask, (3,3), 1)  # 使用更大的模糊核心
-    # 锐化
-    kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-    mask = cv2.filter2D(mask, -1, kernel)
+    Returns:
+        output_image (numpy.ndarray): Image after applying CLAHE.
+    """
+    # Read the image
+    if img is None:
+        raise ValueError("Image not found at the specified path.")
+
     
-    # mask = cv2.dilate(mask, None, iterations=6)  # 膨胀
-    # mask = cv2.erode(mask, None, iterations=2)  # 腐蚀
-    edges = cv2.Canny(mask, 100, 200)
-    return mask,edges
-
+    # Create a CLAHE object
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
+    
+    # Apply CLAHE
+    enhanced_img = clahe.apply(img)
+    
+    return enhanced_img
 def classify_circles(image, circles):
     # 遍历所有检测到的圆
     for i in circles[0, :]:
@@ -43,7 +49,7 @@ def classify_circles(image, circles):
         upper_red = np.array([180, 255, 255])
         lower_green = np.array([30, 0, 0])
         upper_green = np.array([90, 255, 255])
-        lower_blue = np.array([92, 0, 0])
+        lower_blue = np.array([92, 40, 40])
         upper_blue = np.array([120, 255, 255])
         
         # 计算每种颜色的像素数量
@@ -73,8 +79,13 @@ def canny(img):
 while True:
     ret, frame = cap.read()
     frame = cv2.GaussianBlur(frame, (5,5), 1.1)
-    frame = cv2.medianBlur(frame, 5)
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    h,s,v = cv2.split(hsv)
+    v_filtered = apply_CLAHE(v)
+    hsv = cv2.merge([h, s, v_filtered])
+    frame = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    frame = cv2.GaussianBlur(frame, (5,5), 1.1)
+    # frame = cv2.medianBlur(frame, 5)
     if not ret:
         break
     canny_image = canny(frame)
@@ -85,8 +96,8 @@ while True:
                             dp=1, 
                             minDist=100,
                             param1=50+5,
-                            param2=30+0,
-                            minRadius=180,
+                            param2=30+40,
+                            minRadius=100,
                             maxRadius=200)
     
     if circles is not None:
