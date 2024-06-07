@@ -25,6 +25,8 @@ while True:
         break
 
     # 转换到HSV色彩空间
+    frame = cv2.GaussianBlur(frame, (5, 5), 1)
+    # frame = cv2.medianBlur(frame, 5)
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # 从滑动条获取当前的HSV阈值
@@ -54,5 +56,8 @@ while True:
 # 释放摄像头资源并销毁所有窗口
 cap.release()
 cv2.destroyAllWindows()
-print(f'lower_hsv: {lower_hsv}')
-print(f'upper_hsv: {upper_hsv}')
+color = input('Enter the color: ')
+lower_hsv_list = [l_h, l_s, l_v]
+upper_hs_list = [u_h, u_s, u_v]
+print(f'lower_{color} = np.array({lower_hsv_list})')
+print(f'upper_{color} = np.array({upper_hs_list})')

@@ -52,5 +52,7 @@ while True:
 # 释放摄像头资源并销毁所有窗口
 cv2.destroyAllWindows()
 
-print(f'lower_hsv = np.array({lower_hsv_list})')
-print(f'upper_hsv = np.array({upper_hs_list})')
+color = input('Enter the color: ')
+
+print(f'lower_{color} = np.array({lower_hsv_list})')
+print(f'upper_{color} = np.array({upper_hs_list})')
