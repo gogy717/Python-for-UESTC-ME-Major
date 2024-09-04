@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-
 # video_path = "/Users/luozhufeng/Desktop/Python-for-UESTC-ME-Major/智能机器人实验/课前准备/IMG_0013.mp4"
 video_path = "/Users/luozhufeng/Desktop/Python-for-UESTC-ME-Major/智能机器人实验/课前准备/output.mp4"
 lower_red = np.array([153, 32, 87])
