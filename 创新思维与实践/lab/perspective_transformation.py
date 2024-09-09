@@ -4,7 +4,7 @@ import os
 
 # 读取图像
 directory = os.path.dirname(os.path.realpath(__file__))
-image_path = os.path.join(directory, "../images/perspective.jpeg")
+image_path = os.path.join(directory, "../images/captures/frame1.png")
 # image_path = os.path.join(directory, "../images/photo.jpg")
 
 image = cv2.imread(image_path, cv2.IMREAD_COLOR)

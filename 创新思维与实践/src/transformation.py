@@ -1,6 +1,29 @@
 import cv2
 import numpy as np
 from typing import List, Tuple
+from vision_utils import *
+
+def find_lines(image: np.ndarray, min_line_length: int = 100) -> np.ndarray:
+    """
+    Find lines in an image using the Hough transform.
+    
+    :param image: Input image.
+    :param min_line_length: Minimum length of a line to be detected.
+    :return: Detected lines.
+    """
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Apply Canny edge detection
+    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+    
+    # Apply Hough transform to detect lines
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 70, minLineLength=130, maxLineGap=10)
+
+    # drop lines too close
+    lines = lines[np.linalg.norm(lines[:, 0, :2] - lines[:, 0, 2:], axis=1) > 100]
+    
+    return lines
 
 
 def find_corner(lines: np.ndarray) -> np.ndarray:
@@ -80,7 +103,7 @@ def sort_corners(corners: np.ndarray) -> np.ndarray:
     """
     Sort corners in order of top-left, top-right, bottom-right, bottom-left.
     
-    :param corners: Detected corners, assumed to be 4 points (2D array of shape (4, 2)).
+    :param : Detected corners, assumed to be 4 points (2D array of shape (4, 2)).
     :return: Sorted corners (in top-left, top-right, bottom-right, bottom-left order).
     """
     # Calculate the centroid of the corners
@@ -119,4 +142,22 @@ def perspective_transform(image: np.ndarray, corner_points: np.ndarray, imshow: 
     
     return warped_image
     
+def get_warped_image(image: np.ndarray) -> np.ndarray:
+    """
+    Get warped image
+    
+    :param image: input image
+    
+    :return: warped image
+    """
+    lines = find_lines(image)
+    corner_points = find_corner(lines)
+    # corner_points = remove_outliers(corner_points, 100)
+    corner_points = remove_close_points(corner_points)
+    corner_points = sort_corners(corner_points)
+    return perspective_transform(image, corner_points)
 
+if __name__ == "__main__":
+    image = get_image("images/captures/frame0.png")
+    warped = get_warped_image(image)
+    cv2.imshow('image', warped)

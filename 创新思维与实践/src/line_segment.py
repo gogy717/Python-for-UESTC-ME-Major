@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 from typing import List, Tuple
-from vision_ultils import *
-
+from .vision_utils import *
+from collections import deque
+from typing import List, Tuple, Dict
 
 def get_skeleton(gray: np.ndarray) -> np.ndarray:
     # 转换为二值图像
@@ -128,6 +129,41 @@ def get_path_derivative(path: list, step: int = 10) -> dict:
         
     return derivatives
 
-
+def get_all_targets(gray: np.array) -> Dict[Tuple[int, int], float]:
+    """
+    Get all targets in the image.
+    
+    Parameters:
+    - gray (np.array): The input image in grayscale.
+    
+    Returns:
+    - targets (Dict[Tuple[int, int], float]): A dictionary containing all targets as keys and their corresponding slopes as values.
+    """
+    # Get the skeleton of the image
+    skeleton = get_skeleton(gray)
+    
+    # Find the endpoints in the skeleton
+    endpoints = skeleton_endpoints(skeleton)
+    
+    # Initialize the dictionary to store the targets
+    targets = {}
+    
+    # Iterate through each pair of endpoints
+    for i in range(len(endpoints)):
+        for j in range(i + 1, len(endpoints)):
+            start = tuple(endpoints[i])
+            end = tuple(endpoints[j])
+            
+            # Find the shortest path between the endpoints
+            path = bfs(skeleton, start, end)
+            
+            # Calculate the derivatives of the path
+            derivatives = get_path_derivative(path)
+            
+            # Store the target and slope in the dictionary
+            targets[start] = derivatives[start]
+            targets[end] = derivatives[end]
+    
+    return targets
 
 
