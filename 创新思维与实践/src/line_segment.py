@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from typing import List, Tuple
-from vision_utils import *
+from .vision_utils import *
 from collections import deque
 from typing import List, Tuple, Dict
 
@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 
 class image:
-    def __init__(self, img_path: str) -> None:
+    def __init__(self, img_path: str = "images/line.jpg") -> None:
         self.image_path = img_path
         
         
@@ -30,7 +30,7 @@ class image:
         temp = cv2.GaussianBlur(temp, (5, 5), 0)
         self.image = temp
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        self.edges = cv2.Canny(self.gray, 50, 150, apertureSize=3)
+        self.edges = cv2.Canny(self.gray, 50, 100, apertureSize=3)
    
     
     def fill_closed_curves(self) -> np.ndarray:
@@ -128,7 +128,7 @@ class image:
         return []
 
 
-    def get_path_derivative(self, step: int = 10) -> dict:
+    def get_path_derivative(self, step: int = 10) -> Dict[Tuple[int, int], float]:
         """
         Calculate the derivative of a path represented as a list of coordinates [(x1, y1), (x2, y2), ...].
         
@@ -169,19 +169,26 @@ class image:
         return derivatives
     
     
-    def draw_points(self, points: List[Tuple[int, int]]) -> None:
+    def draw_points(self, points: Dict[tuple[int, int], float]) -> None:
         """
         Draw points on the image.
-        
+
         Parameters:
-        - points (list): A list of points as tuples [(x1, y1), (x2, y2), ...].
+        - points (dict): A dictionary where the key is a tuple (x, y) 
+        representing the coordinates, and the value is a float k representing 
+        the derivative at that point.
         """
-        image = self.image.copy()
-        for point in points:
-            cv2.circle(image, (point[1], point[0]), 5, (0, 0, 255), -1)
+        image = self.image.copy()  # Copy the image to avoid modifying the original
+        for (x, y), k in points.items():  # Iterate through both keys (coordinates) and values (derivative)
+            # Draw a circle at the (x, y) position
+            cv2.circle(image, (y, x), 5, (0, 0, 255), -1)  # (y, x) because OpenCV uses (col, row) order
+            # Display the coordinate and value as text next to the point
+            cv2.putText(image, f'({x}, {y}): {k:.2f}', (y + 10, x + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+        
+        # Show the image with points and text
         cv2.imshow('image', image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.waitKey(0)  # Wait for a key press
+        cv2.destroyAllWindows()  # Close the image window when done
         
 
 if __name__ == '__main__':
