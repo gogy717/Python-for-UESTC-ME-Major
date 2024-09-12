@@ -5,7 +5,7 @@ from typing import List, Tuple
 def get_image(image_path: str) -> np.ndarray:
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = cv2.resize(image, (640, 360))
+    image = cv2.resize(image, (320, 180))
     image = cv2.GaussianBlur(image, (5, 5), 0)
     return image
 

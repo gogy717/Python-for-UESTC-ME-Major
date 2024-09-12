@@ -124,3 +124,25 @@ def map_a4_paper(paper: np.ndarray, image: np.ndarray) -> np.ndarray:
     print("Warped image size:", dst.shape)
     
     return dst
+
+
+    
+    
+
+if __name__ == "__main__":
+    file_path = "/Users/luozhufeng/Desktop/Python-for-UESTC-ME-Major/创新思维与实践/images/captures/frame0.png"
+    gray = get_gray(file_path)
+    edges = get_edges(gray)
+    paper = find_paper(edges)
+    image = cv2.imread(file_path)
+    image = cv2.resize(image, (640, 360))
+    if paper is None:
+        print("Paper not found")
+        # create mouse click event to find paper
+        # cv2.setMouseCallback('edges', mouse_click_event)
+        
+    mapped_paper = map_a4_paper(paper, image)
+    cv2.imshow('mapped_paper', mapped_paper)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    
