@@ -45,10 +45,6 @@ def main():
     print(f'Debug: Targets: {line_image.targets}')
 
 
-
-
-
-
 if __name__ == "__main__":
     main()
     
