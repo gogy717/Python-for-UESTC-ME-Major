@@ -2,12 +2,21 @@ import tkinter as tk
 from tkinter import scrolledtext
 import threading
 import queue
+from .Tcp_server import TcpServer
+
 
 class ServerGUI:
     def __init__(self, master):
         self.master = master
         master.title("TCP 服务器")
-        master.geometry("600x400")
+        master.geometry("600x450")  # 增加高度以容纳新的控件
+
+        # 创建端口号输入框
+        self.port_label = tk.Label(master, text="端口号:")
+        self.port_label.pack(pady=5)
+        self.port_entry = tk.Entry(master)
+        self.port_entry.insert(0, "12345")  # 默认端口号
+        self.port_entry.pack(pady=5)
 
         # 创建启动和停止按钮
         self.start_button = tk.Button(master, text="启动服务器", command=self.start_server)
@@ -24,13 +33,33 @@ class ServerGUI:
         self.log_queue = queue.Queue()
         self.update_log()
 
+    def set_port(self):
+        """
+        设置服务器的端口号
+        """
+        port_str = self.port_entry.get()
+        try:
+            port = int(port_str)
+            if 0 <= port <= 65535:
+                self.port = port
+                return True
+            else:
+                self.log("端口号必须在 0 到 65535 之间。")
+                return False
+        except ValueError:
+            self.log("请输入有效的端口号。")
+            return False
+
     def start_server(self):
+        if not self.set_port():
+            return  # 如果端口号无效，不启动服务器
+
         # 禁用启动按钮，启用停止按钮
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
 
-        # 创建并启动服务器线程
-        self.server = TcpServer(gui=self)
+        # 创建并启动服务器线程，使用指定的端口号
+        self.server = TcpServer(port=self.port, gui=self)
         self.server_thread = threading.Thread(target=self.server.start_server)
         self.server_thread.start()
 
@@ -40,7 +69,8 @@ class ServerGUI:
         self.stop_button.config(state=tk.DISABLED)
 
         # 停止服务器
-        self.server.stop_server()
+        if hasattr(self, 'server'):
+            self.server.stop_server()
 
     def log(self, message):
         # 将日志消息放入队列

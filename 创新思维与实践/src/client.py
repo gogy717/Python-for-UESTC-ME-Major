@@ -49,7 +49,7 @@ class TcpClient():
 
 # 示例使用
 if __name__ == '__main__':
-    client = TcpClient(host='127.0.0.1', port=8080)
+    client = TcpClient(host='127.0.0.1', port=12345)
     client.connect()
     client.send('Hello, Server!')
     client.receive()

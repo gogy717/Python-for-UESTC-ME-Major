@@ -1,17 +1,17 @@
 import socket
 import threading
-try:
-    from ServerGUI import *
-except ImportError:
-    from .ServerGUI import *
+import tkinter as tk
+from tkinter import scrolledtext
+import queue
 
 class TcpServer:
-    def __init__(self, host='127.0.0.1', port=12345):
+    def __init__(self, host='127.0.0.1', port=12345, gui=None):
         self.host = host
         self.port = port
         self.server_socket = None
         self.is_running = False
         self.client_threads = []
+        self.gui = gui  # 引用 GUI 对象
 
     def start_server(self):
         # 初始化服务器套接字
@@ -20,9 +20,15 @@ class TcpServer:
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(5)
             self.is_running = True
-            print(f'服务器已启动，正在监听 {self.host}:{self.port}')
+            if self.gui:
+                self.gui.log(f'服务器已启动，正在监听 {self.host}:{self.port}')
+            else:
+                print(f'服务器已启动，正在监听 {self.host}:{self.port}')
         except Exception as e:
-            print(f'服务器启动失败: {e}')
+            if self.gui:
+                self.gui.log(f'服务器启动失败: {e}')
+            else:
+                print(f'服务器启动失败: {e}')
             self.stop_server()
             return
 
@@ -34,12 +40,18 @@ class TcpServer:
         while self.is_running:
             try:
                 client_socket, addr = self.server_socket.accept()
-                print(f'客户端已连接: {addr}')
+                if self.gui:
+                    self.gui.log(f'客户端已连接: {addr}')
+                else:
+                    print(f'客户端已连接: {addr}')
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket, addr))
                 client_thread.start()
                 self.client_threads.append(client_thread)
             except Exception as e:
-                print(f'接受客户端连接时出错: {e}')
+                if self.gui:
+                    self.gui.log(f'接受客户端连接时出错: {e}')
+                else:
+                    print(f'接受客户端连接时出错: {e}')
 
     def handle_client(self, client_socket, addr):
         while self.is_running:
@@ -47,16 +59,25 @@ class TcpServer:
                 data = client_socket.recv(1024)
                 if data:
                     message = data.decode('utf-8')
-                    print(f'收到来自 {addr} 的数据: {message}')
+                    if self.gui:
+                        self.gui.log(f'收到来自 {addr} 的数据: {message}')
+                    else:
+                        print(f'收到来自 {addr} 的数据: {message}')
                     # 处理接收到的数据，可以根据需要修改
                     response = f'服务器已收到您的消息: {message}'
                     client_socket.sendall(response.encode('utf-8'))
                 else:
                     # 客户端断开连接
-                    print(f'客户端 {addr} 已断开连接')
+                    if self.gui:
+                        self.gui.log(f'客户端 {addr} 已断开连接')
+                    else:
+                        print(f'客户端 {addr} 已断开连接')
                     break
             except Exception as e:
-                print(f'处理客户端 {addr} 数据时出错: {e}')
+                if self.gui:
+                    self.gui.log(f'处理客户端 {addr} 数据时出错: {e}')
+                else:
+                    print(f'处理客户端 {addr} 数据时出错: {e}')
                 break
         client_socket.close()
 
@@ -70,14 +91,8 @@ class TcpServer:
         # 关闭服务器套接字
         if self.server_socket:
             self.server_socket.close()
-        print('服务器已停止')
+        if self.gui:
+            self.gui.log('服务器已停止')
+        else:
+            print('服务器已停止')
 
-# 示例使用
-if __name__ == '__main__':
-    server = TcpServer(host='127.0.0.1', port=8080)
-    try:
-        server.start_server()
-        while True:
-            pass  # 保持主线程运行
-    except KeyboardInterrupt:
-        server.stop_server()
