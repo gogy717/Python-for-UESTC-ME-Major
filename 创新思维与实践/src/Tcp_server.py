@@ -3,7 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import scrolledtext
 import queue
-
+from .ipGet import get_local_ip
 
 class TcpServer:
     def __init__(self, host='127.0.0.1', port=12345, gui=None):
@@ -23,6 +23,11 @@ class TcpServer:
             self.is_running = True
             if self.gui:
                 self.gui.log(f'服务器已启动，正在监听 {self.host}:{self.port}')
+                if self.gui.mode == 'localhost':
+                    self.gui.log("当前模式: 本地模式")
+                else:
+                    self.gui.log("当前模式: 局域网模式")
+                    self.gui.log(f"本机 IP 地址: {get_local_ip()}")
             else:
                 print(f'服务器已启动，正在监听 {self.host}:{self.port}')
         except Exception as e:
