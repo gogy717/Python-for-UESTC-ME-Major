@@ -11,7 +11,7 @@ from src.vision_utils import *
 
 
 def main():
-    path = "images/line.jpg"
+    path = "images/captures/circle.png"
     # cap = cv2.VideoCapture(0)
     
     # while True:
