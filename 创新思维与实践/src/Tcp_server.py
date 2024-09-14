@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import queue
 
+
 class TcpServer:
     def __init__(self, host='127.0.0.1', port=12345, gui=None):
         self.host = host
@@ -95,4 +96,5 @@ class TcpServer:
             self.gui.log('服务器已停止')
         else:
             print('服务器已停止')
-
+            
+            

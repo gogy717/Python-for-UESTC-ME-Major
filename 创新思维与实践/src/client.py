@@ -46,10 +46,24 @@ class TcpClient():
             self.client_socket.close()
             self.is_connected = False
             print('连接已关闭')
-
+            
+    def toggle_mode(self):
+        if self.mode == 'localhost':
+            self.mode = '局域网'
+            self.host = '0.0.0.0'  # 监听所有网络接口
+            self.toggle_mode_button.config(text="切换到本地模式")
+            self.log("已切换到局域网模式，服务器将监听所有网络接口。")
+        else:
+            self.mode = 'localhost'
+            self.host = '127.0.0.1'  # 仅监听本地回环接口
+            self.toggle_mode_button.config(text="切换到局域网模式")
+            self.log("已切换到本地模式，服务器将仅监听本地接口。")
+        self.mode_label.config(text=f"当前模式: {self.mode}")
+    
+    
 # 示例使用
 if __name__ == '__main__':
-    client = TcpClient(host='127.0.0.1', port=12345)
+    client = TcpClient(host='127.0.0.1', port=8080)
     client.connect()
     client.send('Hello, Server!')
     client.receive()
