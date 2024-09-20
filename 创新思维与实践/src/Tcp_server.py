@@ -1,18 +1,15 @@
 import socket
 import threading
-import tkinter as tk
-from tkinter import scrolledtext
-import queue
 from .ipGet import get_local_ip
 
 class TcpServer:
-    def __init__(self, host='127.0.0.1', port=12345, gui=None):
+    def __init__(self, host='127.0.0.1', port=12345, log_callback=None):
         self.host = host
         self.port = port
         self.server_socket = None
         self.is_running = False
         self.client_threads = []
-        self.gui = gui  # 引用 GUI 对象
+        self.log_callback = log_callback  # 用于日志记录的回调函数
 
     def start_server(self):
         # 初始化服务器套接字
@@ -21,18 +18,18 @@ class TcpServer:
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(5)
             self.is_running = True
-            if self.gui:
-                self.gui.log(f'服务器已启动，正在监听 {self.host}:{self.port}')
-                if self.gui.mode == 'localhost':
-                    self.gui.log("当前模式: 本地模式")
+            if self.log_callback:
+                self.log_callback(f'服务器已启动，正在监听 {self.host}:{self.port}')
+                if self.host == '127.0.0.1':
+                    self.log_callback("当前模式: 本地模式")
                 else:
-                    self.gui.log("当前模式: 局域网模式")
-                    self.gui.log(f"本机 IP 地址: {get_local_ip()}")
+                    self.log_callback("当前模式: 局域网模式")
+                    self.log_callback(f"本机 IP 地址: {get_local_ip()}")
             else:
                 print(f'服务器已启动，正在监听 {self.host}:{self.port}')
         except Exception as e:
-            if self.gui:
-                self.gui.log(f'服务器启动失败: {e}')
+            if self.log_callback:
+                self.log_callback(f'服务器启动失败: {e}')
             else:
                 print(f'服务器启动失败: {e}')
             self.stop_server()
@@ -46,16 +43,16 @@ class TcpServer:
         while self.is_running:
             try:
                 client_socket, addr = self.server_socket.accept()
-                if self.gui:
-                    self.gui.log(f'客户端已连接: {addr}')
+                if self.log_callback:
+                    self.log_callback(f'客户端已连接: {addr}')
                 else:
                     print(f'客户端已连接: {addr}')
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket, addr))
                 client_thread.start()
                 self.client_threads.append(client_thread)
             except Exception as e:
-                if self.gui:
-                    self.gui.log(f'接受客户端连接时出错: {e}')
+                if self.log_callback:
+                    self.log_callback(f'接受客户端连接时出错: {e}')
                 else:
                     print(f'接受客户端连接时出错: {e}')
 
@@ -65,8 +62,8 @@ class TcpServer:
                 data = client_socket.recv(1024)
                 if data:
                     message = data.decode('utf-8')
-                    if self.gui:
-                        self.gui.log(f'收到来自 {addr} 的数据: {message}')
+                    if self.log_callback:
+                        self.log_callback(f'收到来自 {addr} 的数据: {message}')
                     else:
                         print(f'收到来自 {addr} 的数据: {message}')
                     # 处理接收到的数据，可以根据需要修改
@@ -74,14 +71,14 @@ class TcpServer:
                     client_socket.sendall(response.encode('utf-8'))
                 else:
                     # 客户端断开连接
-                    if self.gui:
-                        self.gui.log(f'客户端 {addr} 已断开连接')
+                    if self.log_callback:
+                        self.log_callback(f'客户端 {addr} 已断开连接')
                     else:
                         print(f'客户端 {addr} 已断开连接')
                     break
             except Exception as e:
-                if self.gui:
-                    self.gui.log(f'处理客户端 {addr} 数据时出错: {e}')
+                if self.log_callback:
+                    self.log_callback(f'处理客户端 {addr} 数据时出错: {e}')
                 else:
                     print(f'处理客户端 {addr} 数据时出错: {e}')
                 break
@@ -97,9 +94,7 @@ class TcpServer:
         # 关闭服务器套接字
         if self.server_socket:
             self.server_socket.close()
-        if self.gui:
-            self.gui.log('服务器已停止')
+        if self.log_callback:
+            self.log_callback('服务器已停止')
         else:
             print('服务器已停止')
-            
-            

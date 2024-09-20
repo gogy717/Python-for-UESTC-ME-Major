@@ -1,18 +1,13 @@
-import tkinter as tk
-from tkinter import scrolledtext
-import threading
-import queue
-import socket
-import time
-
-from src.Tcp_server import TcpServer
+from PyQt5.QtWidgets import QApplication
+import sys
 from src.ServerGUI import ServerGUI
 
+def run_gui():
+    app = QApplication(sys.argv)
+    window = ServerGUI()
+    window.show()
+    sys.exit(app.exec_())
 
-if __name__ == '__main__':
-    root = tk.Tk()
-    gui = ServerGUI(root)
-    root.mainloop()
-    
-    
+if __name__ == "__main__":
+    run_gui()
     
