@@ -2,6 +2,8 @@
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTextEdit, QVBoxLayout)
 from PyQt5.QtCore import pyqtSignal, QThread
 from src.Tcp_server import TcpServer
+from src.line_segment import *
+import time
 
 class ServerGUI(QWidget):
     log_signal = pyqtSignal(str)
@@ -53,6 +55,10 @@ class ServerGUI(QWidget):
         self.send_button = QPushButton("发送消息")
         self.send_button.clicked.connect(self.send_message)
 
+        # 开始图像处理
+        self.run_button = QPushButton("开始图像处理")
+        self.run_button.clicked.connect(self.run_gui)
+
         # 日志显示区域
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
@@ -69,6 +75,7 @@ class ServerGUI(QWidget):
         layout.addWidget(self.message_label)
         layout.addWidget(self.message_entry)
         layout.addWidget(self.send_button)
+        layout.addWidget(self.run_button)
         layout.addWidget(self.log_area)
 
         self.setLayout(layout)
@@ -111,6 +118,37 @@ class ServerGUI(QWidget):
             self.log(f"已发送消息: {message}")
         else:
             self.log("请先启动服务器。")
+    
+    def run_gui(self):
+        cap = cv2.VideoCapture(0)
+        while True:
+            ret, frame = cap.read()
+            cv2.imshow("frame", frame)
+            if cv2.waitKey(1) & 0xFF == ord('c'):
+                cv2.imwrite("images\line1.jpg", frame)
+                break
+        cap.release()
+        time.sleep(1)
+        line_image = image("images\line1.jpg")
+        line_image.run()
+        step = 10
+        targets = line_image.targets
+        data: Dict[Tuple[int, int], float] = {}
+        for i in range(0, len(targets), step):
+            data[list(targets.keys())[i]] = list(targets.values())[i]
+        if len(targets) % step > step // 2:
+            data[list(targets.keys())[-1]] = list(targets.values())[-1]
+        line_image.draw_points(data)
+        data_string: str = "a"
+        for key, value in data.items():
+            data_string += (str(key[0]) + ',')
+            data_string += (str(key[1]) + ',')
+            value = np.arctan(value)
+            value = np.degrees(value)
+            value = round(value, 2)
+            data_string += (str(value) + ',')
+        self.server_thread.server.send_message(data_string)
+
 
     def start_server(self):
         if not hasattr(self, 'port'):

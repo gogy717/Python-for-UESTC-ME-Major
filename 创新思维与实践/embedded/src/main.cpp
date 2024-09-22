@@ -48,6 +48,9 @@ const uint16_t PORT = 80;
 // data
 std::vector<std::string> data;
 
+// debug flag
+bool debug_flag = false;
+
 // Create an instance of your ESP32TCPClient
 ESP32TCPClient client(IP, PORT);
 
@@ -96,7 +99,18 @@ void setup() {
 }
 
 void loop() {
+  int cnt = 0;
   // Your main loop code
+  if (debug_flag) {
+    for (const auto& item : data) {
+      Serial.println(item.c_str());
+      cnt++;
+    }
+    debug_flag = false;
+    Serial.println(cnt / 3);
+  }
+  vTaskDelay(1);
+
 }
 
 // Function definitions

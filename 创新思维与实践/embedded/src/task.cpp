@@ -7,11 +7,12 @@
 
 extern ESP32TCPClient client;  
 extern std::vector<std::string> data;
+extern bool debug_flag;
 
 // TCP Client Task
 void Task_TCPClient(void *pvParameters) {
   // Define the buffer and its maximum size
-  char buffer[128];
+  char buffer[1024];
   int bufIndex = 0; // Buffer index
 
   for (;;) {
@@ -45,6 +46,9 @@ void Task_TCPClient(void *pvParameters) {
                 Serial.println(data[0].c_str());
                 Serial.println(data[1].c_str());
                 Serial.println(data[2].c_str());
+            }
+            if (buffer[0] == 'o') {
+                debug_flag = true;
             }
             bufIndex = 0; // Reset buffer index
             memset(buffer, 0, sizeof(buffer)); // Clear the buffer

@@ -49,10 +49,15 @@ def main():
         data[list(targets.keys())[i]] = list(targets.values())[i]
     if len(targets) % step > step // 2:
         data[list(targets.keys())[-1]] = list(targets.values())[-1]
-    line_image.draw_points(data)
+    # line_image.draw_points(data)
     
-    print(f'Debug: Targets: {line_image.targets}')
+    print(f'Debug: Targets: {data}')
 
+    datalist = []
+    for key, value in data.items():
+        datalist.append(key)
+        datalist.append(value)
+    print(datalist)
 
 if __name__ == "__main__":
     main()
