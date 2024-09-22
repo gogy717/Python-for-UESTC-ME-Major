@@ -12,10 +12,11 @@ import numpy as np
 class image:
     def __init__(self, img_path: str = "images/line.jpg") -> None:
         self.image_path = img_path
-        
+        self.image = None
         
     def run(self) -> None:
-        self.read_image()
+        if not self.image:
+            self.read_image()
         self.filled_curve = self.fill_closed_curves()
         self.skeleton = self.get_skeleton()
         self.skeleton_endpoints = self.skeleton_endpoints()

@@ -1,6 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include <vector>
+#include <string>
 
-void Data_decode_fun(char *data);
+std::vector<std::string> Data_decode_fun(char *data);
+
 
 #endif // UTILS_H

@@ -1,19 +1,25 @@
 #include "utils.h"
 #include <Arduino.h>
+#include <vector>
+#include <string>
 
-void Data_decode_fun(char *data){
-    Serial.println(data);
-    Serial.println("Data decode function is called");
-    // TODO: handle the processed data
-    //delete the first character
+std::vector<std::string> Data_decode_fun(char *data) {
+    std::vector<std::string> result;
+    
+    // 跳过第一个字符
     data++;
-    //split by comma
+    
+    // 分割字符串
     char *p = strtok(data, ",");
     while (p != NULL) {
-        Serial.println(p);
+        result.push_back(std::string(p));
         p = strtok(NULL, ",");
     }
-    Serial.println("Data decode function is done"); 
+    
+    Serial.println("Data decode function is done");
+    Serial.println("================================================");
+    
+    return result;
 }
 
 

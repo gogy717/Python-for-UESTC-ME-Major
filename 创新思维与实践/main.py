@@ -9,9 +9,18 @@ from src.line_segment import *
 from backlog.transformation import *
 from src.vision_utils import *
 
+from PyQt5.QtWidgets import QApplication
+import sys
+from src.ServerGUI import ServerGUI
+
+def run_gui():
+    app = QApplication(sys.argv)
+    window = ServerGUI()
+    window.show()
+    sys.exit(app.exec_())
 
 def main():
-    path = "images/line.jpg"
+    path = "images\line.jpg"
     # cap = cv2.VideoCapture(0)
     
     # while True:

@@ -2,8 +2,11 @@
 #include "tcp_client.h"
 #include<Arduino.h>
 #include "utils.h"
+#include <vector>
+#include <string>
 
 extern ESP32TCPClient client;  
+extern std::vector<std::string> data;
 
 // TCP Client Task
 void Task_TCPClient(void *pvParameters) {
@@ -38,7 +41,10 @@ void Task_TCPClient(void *pvParameters) {
             buffer[bufIndex] = '\0'; // Null-terminate the string
             // Handle the complete command here
             if (buffer[0] == 'a') { // Confirm it's the correct command
-                Data_decode_fun(buffer); // Parse and handle the command
+                data = Data_decode_fun(buffer); // Parse and handle the command
+                Serial.println(data[0].c_str());
+                Serial.println(data[1].c_str());
+                Serial.println(data[2].c_str());
             }
             bufIndex = 0; // Reset buffer index
             memset(buffer, 0, sizeof(buffer)); // Clear the buffer

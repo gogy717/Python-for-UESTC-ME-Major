@@ -1,10 +1,41 @@
 #include <Arduino.h>
 #include "tcp_client.h"
 #include <WiFi.h>
+#include "stepper.h"
+#include <AccelStepper.h>
+#include <Adafruit_NeoPixel.h>
 
 // Include your data decode functions
 #include "task.h"
 #include "utils.h"
+
+// Define the pins for the stepper motors
+#define STEP_PIN1 2
+#define DIR_PIN1 3
+#define STEP_PIN2 4
+#define DIR_PIN2 5
+#define STEP_PIN3 6
+#define DIR_PIN3 7
+
+// Define the pins for RGB LED
+#define RGB 48
+typedef enum {
+  RED = (255 << 16) | (0 << 8) | 0,
+  GREEN = (0 << 16) | (255 << 8) | 0,
+  BLUE = (0 << 16) | (0 << 8) | 255,
+  YELLOW = (255 << 16) | (255 << 8) | 0,
+  PURPLE = (255 << 16) | (0 << 8) | 255,
+  CYAN = (0 << 16) | (255 << 8) | 255,
+  WHITE = (255 << 16) | (255 << 8) | 255,
+  OFF = (0 << 16) | (0 << 8) | 0
+} RGBColor;
+
+
+// Define the pins for Servo
+#define SERVO 38
+#define FREQUENCY 50
+#define RESOLUTION 10
+#define CHANNEL 0
 
 // WiFi credentials
 const char* ssid = "chat.openai.com";
@@ -14,20 +45,41 @@ const char* password = "31415926";
 const char* IP = "192.168.5.2";
 const uint16_t PORT = 80;
 
+// data
+std::vector<std::string> data;
+
 // Create an instance of your ESP32TCPClient
 ESP32TCPClient client(IP, PORT);
+
+// Create an instance of the stepper class
+AccelStepper stepper1(
+  AccelStepper::DRIVER,  // Driver type
+  STEP_PIN1,              // Step pin
+  DIR_PIN1                // Direction pin
+);
+
+// Create an instance of the Servo class
+// Servo servo;
+
+// Create an instance of the Adafruit_NeoPixel class
+Adafruit_NeoPixel rgb(1, RGB, NEO_GRB + NEO_KHZ800);
 
 // Function declarations
 void SerialSetup();
 void WiFiSetup();
 void connectAndSendMessage();
-void Task_TCPClient(void *pvParameters);
+// void Task_TCPClient(void *pvParameters);
+void ServoSetup();
+void RGBSetup();
+void setRGB(RGBColor color);
 
 void setup() {
   // Setup serial communication and WiFi
+  RGBSetup();
+  ServoSetup();
   SerialSetup();
   WiFiSetup();
-
+  setRGB(GREEN);
   // Connect to the server and send an initial message if needed
   connectAndSendMessage();
 
@@ -96,58 +148,28 @@ void connectAndSendMessage() {
   }
 }
 
+void ServoSetup() {
+  // Check if the channel is available before setting it up
+  if (ledcSetup(SERVO, FREQUENCY, RESOLUTION) == 0) {
+    Serial.println("Failed to setup LEDC channel for Servo");
+    return;
+  }
+  ledcAttachPin(SERVO, CHANNEL);
+}
+
+void RGBSetup() {
+  rgb.begin();
+  rgb.setBrightness(10);
+  rgb.setPixelColor(0, 255, 0, 0);
+  rgb.show();
+}
+
+void setRGB(RGBColor color) {
+  rgb.setPixelColor(0, color);
+  rgb.show();
+}
+
+
 
 
 // ==================== FreeRTOS Tasks ====================
-
-// // TCP Client Task
-// void Task_TCPClient(void *pvParameters) {
-//   // Define the buffer and its maximum size
-//   char buffer[128];
-//   int bufIndex = 0; // Buffer index
-
-//   for (;;) {
-//     // Check if connected, if not, try to connect
-//     if (!client.isConnected()) {
-//       if (client.connect()) {
-//         Serial.println("Connected to server");
-//       } else {
-//         Serial.println("Connection failed, retrying...");
-//         vTaskDelay(1000 / portTICK_PERIOD_MS); // Wait before retrying
-//         continue;
-//       }
-//     }
-
-//     // If connected, read data
-//     if (client.isConnected()) {
-//       // Use client.receive() to get all available data
-//       String receivedData = client.receive();
-
-//       // Process received data character by character
-//       for (size_t i = 0; i < receivedData.length(); i++) {
-//         char inChar = receivedData[i];
-
-//         // Check for newline character which indicates the end of a command
-//         if (inChar == '\n' && bufIndex > 0) {
-//           buffer[bufIndex] = '\0'; // Null-terminate the string
-//           // Handle the complete command here
-//           if (buffer[0] == 'a') { // Confirm it's the correct command
-//             Data_decode_fun(buffer); // Parse and handle the command
-//           } else if (buffer[0] == 'p') { // Confirm it's the correct command
-//             Pos_decode_fun(buffer); // Parse and handle the command
-//           }
-//           bufIndex = 0; // Reset buffer index
-//           memset(buffer, 0, sizeof(buffer)); // Clear the buffer
-//         } else if (bufIndex < sizeof(buffer) - 1) {
-//           buffer[bufIndex++] = inChar; // Store character and increment index
-//         }
-//       }
-//     } else {
-//       // If disconnected, reset the buffer
-//       bufIndex = 0;
-//       memset(buffer, 0, sizeof(buffer));
-//     }
-
-//     vTaskDelay(1); // Yield to other tasks
-//   }
-// }
