@@ -8,7 +8,8 @@ class TcpServer:
         self.port = port
         self.server_socket = None
         self.is_running = False
-        self.client_threads = []
+        self.client_sockets = set()  # 使用集合存储客户端套接字
+        self.client_sockets_lock = threading.Lock()  # 线程锁
         self.log_callback = log_callback  # 用于日志记录的回调函数
 
     def start_server(self):
@@ -43,13 +44,14 @@ class TcpServer:
         while self.is_running:
             try:
                 client_socket, addr = self.server_socket.accept()
+                with self.client_sockets_lock:
+                    self.client_sockets.add(client_socket)
                 if self.log_callback:
                     self.log_callback(f'客户端已连接: {addr}')
                 else:
                     print(f'客户端已连接: {addr}')
                 client_thread = threading.Thread(target=self.handle_client, args=(client_socket, addr))
                 client_thread.start()
-                self.client_threads.append(client_thread)
             except Exception as e:
                 if self.log_callback:
                     self.log_callback(f'接受客户端连接时出错: {e}')
@@ -82,15 +84,39 @@ class TcpServer:
                 else:
                     print(f'处理客户端 {addr} 数据时出错: {e}')
                 break
+        with self.client_sockets_lock:
+            self.client_sockets.discard(client_socket)
         client_socket.close()
+
+    def send_message(self, message: str):
+        with self.client_sockets_lock:
+            for client_socket in list(self.client_sockets):
+                try:
+                    message += '\n'
+                    client_socket.sendall(message.encode('utf-8'))
+                    if self.log_callback:
+                        self.log_callback(f'向客户端 {client_socket.getpeername()} 发送消息: {message}')
+                    else:
+                        print(f'向客户端 {client_socket.getpeername()} 发送消息: {message}')
+                except Exception as e:
+                    if self.log_callback:
+                        self.log_callback(f'向客户端 {client_socket.getpeername()} 发送消息时出错: {e}')
+                    else:
+                        print(f'向客户端 {client_socket.getpeername()} 发送消息时出错: {e}')
+                    # 移除已断开的客户端套接字
+                    self.client_sockets.discard(client_socket)
+                    client_socket.close()
 
     def stop_server(self):
         self.is_running = False
         # 关闭所有客户端连接
-        for client_thread in self.client_threads:
-            if client_thread.is_alive():
-                client_socket = client_thread._args[0]
-                client_socket.close()
+        with self.client_sockets_lock:
+            for client_socket in list(self.client_sockets):
+                try:
+                    client_socket.close()
+                except Exception:
+                    pass
+            self.client_sockets.clear()
         # 关闭服务器套接字
         if self.server_socket:
             self.server_socket.close()

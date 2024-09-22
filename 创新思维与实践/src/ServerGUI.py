@@ -11,7 +11,7 @@ class ServerGUI(QWidget):
 
         self.mode = 'localhost'  # 初始模式
         self.host = '127.0.0.1'
-        self.port = 12345
+        self.port = 80
 
         self.init_ui()
 
@@ -19,6 +19,9 @@ class ServerGUI(QWidget):
         self.log_signal.connect(self.update_log)
 
         self.server_thread = None
+        
+        # 消息
+        self.message = "No message yet"
 
     def init_ui(self):
         self.setWindowTitle("TCP 服务器")
@@ -44,6 +47,12 @@ class ServerGUI(QWidget):
         self.stop_button.clicked.connect(self.stop_server)
         self.stop_button.setEnabled(False)
 
+        # 消息发送区域
+        self.message_label = QLabel("消息:")
+        self.message_entry = QLineEdit()
+        self.send_button = QPushButton("发送消息")
+        self.send_button.clicked.connect(self.send_message)
+
         # 日志显示区域
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
@@ -57,6 +66,9 @@ class ServerGUI(QWidget):
         layout.addWidget(self.set_port_button)
         layout.addWidget(self.start_button)
         layout.addWidget(self.stop_button)
+        layout.addWidget(self.message_label)
+        layout.addWidget(self.message_entry)
+        layout.addWidget(self.send_button)
         layout.addWidget(self.log_area)
 
         self.setLayout(layout)
@@ -88,6 +100,17 @@ class ServerGUI(QWidget):
         except ValueError:
             self.log("请输入有效的端口号。")
             return False
+
+    def send_message(self):
+        message = self.message_entry.text()
+        if not message:
+            self.log("消息不能为空。")
+            return
+        if self.server_thread:
+            self.server_thread.server.send_message(message)
+            self.log(f"已发送消息: {message}")
+        else:
+            self.log("请先启动服务器。")
 
     def start_server(self):
         if not hasattr(self, 'port'):
@@ -121,6 +144,7 @@ class ServerGUI(QWidget):
     def update_log(self, message):
         self.log_area.append(message)
         self.log_area.ensureCursorVisible()
+
 
 class ServerThread(QThread):
     log_signal = pyqtSignal(str)
