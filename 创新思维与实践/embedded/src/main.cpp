@@ -60,6 +60,18 @@ AccelStepper stepper1(
   STEP_PIN1,              // Step pin
   DIR_PIN1                // Direction pin
 );
+AccelStepper stepper2(
+  AccelStepper::DRIVER,  // Driver type
+  STEP_PIN2,              // Step pin
+  DIR_PIN2                // Direction pin
+);
+AccelStepper stepper3(
+  AccelStepper::DRIVER,  // Driver type
+  STEP_PIN3,              // Step pin
+  DIR_PIN3                // Direction pin
+);
+
+std::vector<AccelStepper*> steppers = {&stepper1, &stepper2, &stepper3};
 
 // Create an instance of the Servo class
 // Servo servo;
