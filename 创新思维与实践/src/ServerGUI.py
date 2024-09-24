@@ -1,6 +1,5 @@
-# server_gui.py
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTextEdit, QVBoxLayout)
-from PyQt5.QtCore import pyqtSignal, QThread
+from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTextEdit, QVBoxLayout, QHBoxLayout, QToolButton)
+from PyQt5.QtCore import pyqtSignal, QThread, Qt
 from src.Tcp_server import TcpServer
 from src.line_segment import *
 import time
@@ -24,7 +23,10 @@ class ServerGUI(QWidget):
         
         # 消息
         self.message = "No message yet"
-
+        
+        # 加载样式表
+        self.apply_styles()
+        
     def init_ui(self):
         self.setWindowTitle("TCP 服务器")
         self.resize(600, 550)
@@ -32,8 +34,13 @@ class ServerGUI(QWidget):
         # 模式显示标签
         self.mode_label = QLabel(f"当前模式: {self.mode}")
 
-        # 模式切换按钮
-        self.toggle_mode_button = QPushButton("切换到局域网模式")
+        # 模式切换按钮，改为较小的 QToolButton
+        self.toggle_mode_button = QToolButton()
+        self.toggle_mode_button.setText("局域网模式")
+        self.toggle_mode_button.setStyleSheet("QToolButton \
+                                              { min-width: 100px; min-height: 30px; \
+                                              font-size: 12px; }")
+
         self.toggle_mode_button.clicked.connect(self.toggle_mode)
 
         # 端口号输入
@@ -42,12 +49,17 @@ class ServerGUI(QWidget):
         self.set_port_button = QPushButton("设置端口号")
         self.set_port_button.clicked.connect(self.set_port)
 
-        # 启动和停止按钮
+        # 启动和停止按钮放在同一行
         self.start_button = QPushButton("启动服务器")
         self.start_button.clicked.connect(self.start_server)
         self.stop_button = QPushButton("停止服务器")
         self.stop_button.clicked.connect(self.stop_server)
         self.stop_button.setEnabled(False)
+        
+        # 创建按钮水平布局
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.start_button)
+        button_layout.addWidget(self.stop_button)
 
         # 消息发送区域
         self.message_label = QLabel("消息:")
@@ -66,12 +78,11 @@ class ServerGUI(QWidget):
         # 布局设置
         layout = QVBoxLayout()
         layout.addWidget(self.mode_label)
-        layout.addWidget(self.toggle_mode_button)
+        layout.addWidget(self.toggle_mode_button, alignment=Qt.AlignCenter)
         layout.addWidget(self.port_label)
         layout.addWidget(self.port_entry)
         layout.addWidget(self.set_port_button)
-        layout.addWidget(self.start_button)
-        layout.addWidget(self.stop_button)
+        layout.addLayout(button_layout)  # 启动和停止按钮同一行
         layout.addWidget(self.message_label)
         layout.addWidget(self.message_entry)
         layout.addWidget(self.send_button)
@@ -84,12 +95,12 @@ class ServerGUI(QWidget):
         if self.mode == 'localhost':
             self.mode = '局域网'
             self.host = '0.0.0.0'
-            self.toggle_mode_button.setText("切换到本地模式")
+            self.toggle_mode_button.setText("本地模式")
             self.log(f"已切换到局域网模式，服务器将监听所有网络接口。")
         else:
             self.mode = 'localhost'
             self.host = '127.0.0.1'
-            self.toggle_mode_button.setText("切换到局域网模式")
+            self.toggle_mode_button.setText("局域网模式")
             self.log(f"已切换到本地模式，服务器将仅监听本地接口。")
         self.mode_label.setText(f"当前模式: {self.mode}")
 
@@ -125,11 +136,11 @@ class ServerGUI(QWidget):
             ret, frame = cap.read()
             cv2.imshow("frame", frame)
             if cv2.waitKey(1) & 0xFF == ord('c'):
-                cv2.imwrite("images\line1.jpg", frame)
+                cv2.imwrite("images/line1.jpg", frame)
                 break
         cap.release()
         time.sleep(1)
-        line_image = image("images\line1.jpg")
+        line_image = image("images/line1.jpg")
         line_image.run()
         step = 10
         targets = line_image.targets
@@ -182,6 +193,12 @@ class ServerGUI(QWidget):
     def update_log(self, message):
         self.log_area.append(message)
         self.log_area.ensureCursorVisible()
+    
+    def apply_styles(self):
+        # 读取样式表文件并应用
+        with open("src/style.qss", "r") as file:
+            stylesheet = file.read()
+            self.setStyleSheet(stylesheet)
 
 
 class ServerThread(QThread):
@@ -205,4 +222,9 @@ class ServerThread(QThread):
             self.server.stop_server()
         self.quit()
         self.wait()
-        
+
+if __name__ == "__main__":
+    app = QApplication([])
+    gui = ServerGUI()
+    gui.show()
+    app.exec_()

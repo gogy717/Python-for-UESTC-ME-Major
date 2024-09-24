@@ -1,0 +1,36 @@
+QWidget {
+    background-color: #F8E6CB;  /* 主背景色 - 米色 */
+    color: #333333;  /* 全局文本颜色 - 深灰色 */
+}
+QLabel {
+    color: #5193B3;  /* 标签文本颜色 - 深蓝色 */
+}
+QLineEdit {
+    background-color: #FFFFFF;  /* 输入框背景色为白色 */
+    border: 1px solid #62C4C3;  /* 浅蓝绿色边框 */
+    padding: 5px;
+    color: #333333;  /* 深灰色文本 */
+}
+QToolButton {
+    background-color: #62C4C3;
+    border: 2px solid #255541;
+    border-radius: 5px;
+    padding: 2px;
+    color: #FFFFFF;
+}
+QPushButton {
+    background-color: #62C4C3;  /* 按钮背景色 - 浅蓝绿色 */
+    color: #FFFFFF;  /* 按钮文本为白色 */
+    padding: 8px;
+    border-radius: 5px;
+}
+QPushButton:disabled {
+    background-color: #5193B3;  /* 禁用按钮颜色 - 深蓝色 */
+    color: #FFFFFF;
+}
+QTextEdit {
+    background-color: #FFFFFF;  /* 日志区域背景色为白色 */
+    border: 1px solid #F8D49B;  /* 浅黄色边框 */
+    padding: 10px;
+    color: #333333;  /* 深灰色文本 */
+}
